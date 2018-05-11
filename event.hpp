@@ -10,7 +10,7 @@ enum EventType {
 
 class Event {
 public:
-    long long timestamp;
+    double timestamp;
     int id;
     EventType eventType;
     bool operator > (const Event &e) const {
