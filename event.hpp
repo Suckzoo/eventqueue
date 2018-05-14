@@ -1,4 +1,5 @@
 #include <string>
+#include "packet.hpp"
 using namespace std;
 
 #ifndef __EVENT_HPP__
@@ -13,6 +14,7 @@ public:
     double timestamp;
     int id;
     EventType eventType;
+    Packet *p;
     bool operator > (const Event &e) const {
         return timestamp > e.timestamp;
     }

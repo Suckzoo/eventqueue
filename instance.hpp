@@ -7,6 +7,6 @@ public:
     virtual void packetArrived(Event) = 0;
     virtual void action() = 0;
     virtual void vote() = 0;
-    //void sendPacket(Packet*);
+    void sendPacket(int, Packet*);
 };
 #endif

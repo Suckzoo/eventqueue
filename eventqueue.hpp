@@ -25,6 +25,7 @@ private:
         nd = normal_distribution<double>(5000, 400);
     }
 public:
+    static const int numPlayers = 2;
     static EventQueue *getInstance() {
         if (singleton == nullptr) {
             singleton = new EventQueue();

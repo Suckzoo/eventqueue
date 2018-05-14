@@ -2,11 +2,15 @@
 #ifndef __PACKET_HPP__
 #define __PACKET_HPP__
 enum PacketType {
-    ACTION, VOTE
+    ACTION_PACKET, VOTE_PACKET
+};
+enum ActionType {
+    GATHER, BOLT, SHIELD
 };
 class Packet {
 public:
     PacketType packetType;
+    int sender;
     virtual ~Packet() {
 
     }
@@ -14,8 +18,10 @@ public:
 
 class ActionPacket : public Packet {
 public:
-    PacketType packetType = ACTION;
-    int action;
+    ActionPacket() {
+        packetType = ACTION_PACKET;
+    }
+    ActionType action;
     int target;
     int targetHp;
     int myHp;
@@ -27,7 +33,9 @@ public:
 
 class VotePacket : public Packet {
 public:
-    PacketType packetType = VOTE;
+    VotePacket() {
+        packetType = VOTE_PACKET;
+    }
     ~VotePacket() {
 
     }

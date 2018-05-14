@@ -13,7 +13,7 @@ private:
     int mp = 0;
     double reaction = 1600;
     double voteFrequency = 5000;
-    double deviation = 100;
+    double deviation = 50;
     random_device rd;
     mt19937_64 gen;
     normal_distribution<double> nd;

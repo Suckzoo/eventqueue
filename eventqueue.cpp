@@ -29,7 +29,6 @@ void EventQueue::run() {
         switch(event.eventType) {
             case PACKET:
                 instance->packetArrived(event);
-                // delete event->packet;
                 break;
             case VOTE:
                 instance->vote();
