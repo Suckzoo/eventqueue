@@ -17,4 +17,6 @@ public:
         return timestamp > e.timestamp;
     }
 };
+
+void pprint(Event);
 #endif

@@ -1,3 +1,4 @@
+#include "event.hpp"
 #include "eventqueue.hpp"
 #include <unistd.h>
 
@@ -23,10 +24,12 @@ void EventQueue::run() {
         event = que.top();
         que.pop();
         time = event.timestamp;
+        pprint(event);
         Instance *instance = instances[event.id];
         switch(event.eventType) {
             case PACKET:
                 instance->packetArrived(event);
+                // delete event->packet;
                 break;
             case VOTE:
                 instance->vote();
