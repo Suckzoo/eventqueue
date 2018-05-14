@@ -31,3 +31,6 @@
 *.out
 *.app
 eventqueue
+
+# VSCode stuffs
+.vscode

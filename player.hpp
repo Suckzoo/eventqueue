@@ -12,7 +12,8 @@ private:
     int hp = 3;
     int mp = 0;
     double reaction = 1600;
-    double deviation = 300;
+    double voteFrequency = 5000;
+    double deviation = 100;
     random_device rd;
     mt19937_64 gen;
     normal_distribution<double> nd;
@@ -21,7 +22,7 @@ public:
     void packetArrived(Event);
     void action();
     void vote();
-    double getActionDelay();
+    double getEventJittering();
 };
 
 #endif
