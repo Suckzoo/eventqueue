@@ -57,7 +57,7 @@ void Player::action() {
 
 void Player::vote() {
     Event e;
-    e.timestamp = EventQueue::getInstance()->getTime() + voteFrequency + getEventJittering();
+    e.timestamp = EventQueue::getInstance()->getTime() + voteFrequency;
     e.id = id;
     e.eventType = VOTE;
     EventQueue::getInstance()->pushEvent(e);

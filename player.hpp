@@ -12,7 +12,7 @@ private:
     int hp = 3;
     int mp = 0;
     double reaction = 1500;
-    double voteFrequency = 5000;
+    double voteFrequency = 3000;
     double deviation = 50;
     random_device rd;
     mt19937_64 gen;
