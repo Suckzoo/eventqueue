@@ -22,7 +22,7 @@ private:
     EventQueue() {
         time = 0;
         gen = mt19937_64(rd());
-        nd = normal_distribution<double>(5000, 400);
+        nd = normal_distribution<double>(2500, 50);
     }
 public:
     static const int numPlayers = 2;

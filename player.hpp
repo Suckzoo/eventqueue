@@ -11,7 +11,7 @@ private:
     int id;
     int hp = 3;
     int mp = 0;
-    double reaction = 1600;
+    double reaction = 1500;
     double voteFrequency = 5000;
     double deviation = 50;
     random_device rd;
