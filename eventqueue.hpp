@@ -30,7 +30,7 @@ private:
 public:
     static vector <playerState> truth;
 
-    static const int numPlayers = 2;
+    static int numPlayers;
     static EventQueue *getInstance() {
         if (singleton == nullptr) {
             singleton = new EventQueue();

@@ -4,7 +4,8 @@
 #include "packet.hpp"
 
 void Instance::sendPacket(int id, Packet *p) {
-    printf("[%.2lf] Sending packets... %d -> %d\n",EventQueue::getInstance()->getTime(), p->source, id);
+//    printf("[%.2lf] Sending packets... %d -> %d\n",EventQueue::getInstance()->getTime(), p->source, id);
+
     Event e;
     e.timestamp = EventQueue::getInstance()->getTime() + EventQueue::getInstance()->getRTT();
     e.eventType = PACKET;

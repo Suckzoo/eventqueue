@@ -4,6 +4,7 @@
 #include <vector>
 #include <unistd.h>
 
+int EventQueue::numPlayers = 0;
 EventQueue* EventQueue::singleton = nullptr;
 vector <playerState> EventQueue::truth;
 
@@ -17,6 +18,8 @@ double EventQueue::getRTT() {
 }
 
 void EventQueue::registerInstance(Instance *instance) {
+    EventQueue::numPlayers++;
+
     instance->initialize(instances.size());
     instances.push_back(instance);
 

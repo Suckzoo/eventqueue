@@ -151,7 +151,7 @@ void Player::action() {
             }
             else {
                 sendPacket(i, static_cast<Packet*>(packet));
-                printf("action: %d\n",a);
+                //printf("action: %d\n",a);
             }
 
         }
@@ -165,7 +165,7 @@ void Player::action() {
 }
 
 void Player::vote() {
-    printf("player: %d       voteTurn: %lf,%lf\n", myState.id, EventQueue::getInstance()->getTime(),  voteFrequency);
+   // printf("player: %d       voteTurn: %lf,%lf\n", myState.id, EventQueue::getInstance()->getTime(),  voteFrequency);
 
     while(!actionBuffer.empty()) {
         ActionPacket myTop = actionBuffer.top();
@@ -176,7 +176,7 @@ void Player::vote() {
         if(actionTurn <= currentTurn-2) {
             actionBuffer.pop();
 
-            printf("%lf: %d %d -> %d\n",myTop.timestamp, myTop.action, myTop.source, myTop.target);
+            // printf("%lf: %d %d -> %d\n",myTop.timestamp, myTop.action, myTop.source, myTop.target);
 
             if(globalState[myTop.source].hp > 0) {
                 if(myTop.action == GATHER) {
@@ -194,12 +194,12 @@ void Player::vote() {
                 globalState[myTop.target].lastAction = myTop.action;
                 globalState[myTop.target].lastTimestamp = myTop.timestamp;
             }
-
+/*
             for(int i=0;i<globalState.size();i++) {
                 printf("(%d, %d, %d)   ",i, globalState[i].hp, globalState[i].mp);
             }
 
-            printf("\n");
+            printf("\n");*/
         }
         else break;
     }
