@@ -1,7 +1,6 @@
 #include "event.hpp"
 #include "eventqueue.hpp"
 
-
 void pprint(Event e) {
     printf("[%.2lf] ",EventQueue::getInstance()->getTime());
     switch(e.eventType) {

@@ -1,6 +1,6 @@
-
 #ifndef __PACKET_HPP__
 #define __PACKET_HPP__
+
 enum PacketType {
     ACTION_PACKET, VOTE_PACKET
 };
@@ -10,7 +10,8 @@ enum ActionType {
 class Packet {
 public:
     PacketType packetType;
-    int sender;
+    int source;
+    int target;
     virtual ~Packet() {
 
     }
@@ -22,12 +23,14 @@ public:
         packetType = ACTION_PACKET;
     }
     ActionType action;
-    int target;
-    int targetHp;
-    int myHp;
-    int myMp;
+    double timestamp;
+
     ~ActionPacket() {
 
+    }
+
+    bool operator > (const ActionPacket& t) const {
+        return timestamp > t.timestamp;
     }
 };
 
@@ -40,4 +43,5 @@ public:
 
     }
 };
+
 #endif

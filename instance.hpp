@@ -4,6 +4,7 @@
 class Instance {
 public:
     virtual void initialize(int _id) = 0;
+    virtual void initializeGlobalState() = 0;
     virtual void packetArrived(Event) = 0;
     virtual void action() = 0;
     virtual void vote() = 0;

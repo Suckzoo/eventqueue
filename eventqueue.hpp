@@ -4,6 +4,8 @@
 #include <random>
 #include "event.hpp"
 #include "instance.hpp"
+#include "player.hpp"
+
 using namespace std;
 
 #ifndef __EVENTQUEUE_HPP__
@@ -24,7 +26,10 @@ private:
         gen = mt19937_64(rd());
         nd = normal_distribution<double>(2500, 50);
     }
+
 public:
+    static vector <playerState> truth;
+
     static const int numPlayers = 2;
     static EventQueue *getInstance() {
         if (singleton == nullptr) {

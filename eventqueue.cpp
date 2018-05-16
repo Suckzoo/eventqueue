@@ -1,8 +1,11 @@
 #include "event.hpp"
 #include "eventqueue.hpp"
+#include "player.hpp"
+#include <vector>
 #include <unistd.h>
 
 EventQueue* EventQueue::singleton = nullptr;
+vector <playerState> EventQueue::truth;
 
 double EventQueue::getTime() {
     return time;
@@ -16,9 +19,15 @@ double EventQueue::getRTT() {
 void EventQueue::registerInstance(Instance *instance) {
     instance->initialize(instances.size());
     instances.push_back(instance);
+
+    truth.push_back(playerState(truth.size(), INITIAL_HP, INITIAL_MP));
 }
 
 void EventQueue::run() {
+    for(int i=0;i<EventQueue::numPlayers;i++) {
+        instances[i]->initializeGlobalState();
+    }
+
     Event event;
     while(!que.empty()) {
         event = que.top();
@@ -37,7 +46,7 @@ void EventQueue::run() {
                 instance->action();
                 break;
         }
-        sleep(3);
+        sleep(0.8);
     }
 }
 
