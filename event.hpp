@@ -6,7 +6,7 @@ using namespace std;
 #define __EVENT_HPP__
 
 enum EventType {
-    PACKET, VOTE, ACTION
+    PACKET, VOTE, ACTION, AGGREGATE
 };
 
 class Event {

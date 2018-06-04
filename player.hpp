@@ -48,6 +48,7 @@ private:
     priority_queue <ActionPacket, vector<ActionPacket>, greater<ActionPacket> > actionBuffer; 
     queue <VotePacket> voteBuffer;
     vector <playerState> globalState;
+    priority_queue <AggregatePacket, vector<AggregatePacket>, greater<AggregatePacket> > aggregateBuffer; 
 
 public:
     void initialize(int);

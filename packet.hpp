@@ -1,8 +1,12 @@
 #ifndef __PACKET_HPP__
 #define __PACKET_HPP__
 
+#include <vector>
+
+using namespace std;
+
 enum PacketType {
-    ACTION_PACKET, VOTE_PACKET
+    ACTION_PACKET, AGGREGATE_PACKET, VOTE_PACKET
 };
 enum ActionType {
     GATHER, BOLT, SHIELD
@@ -10,6 +14,7 @@ enum ActionType {
 class Packet {
 public:
     PacketType packetType;
+    int packetId;
     int source;
     int target;
     virtual ~Packet() {
@@ -39,9 +44,25 @@ public:
     VotePacket() {
         packetType = VOTE_PACKET;
     }
+    double timestamp;
     ~VotePacket() {
 
     }
 };
 
+class AggregatePacket : public Packet {
+public:
+    AggregatePacket() {
+        packetType = AGGREGATE_PACKET;
+    }
+    double timestamp;
+    vector <ActionPacket> packets;
+    ~AggregatePacket() {
+
+    }
+
+    bool operator > (const AggregatePacket& t) const {
+        return timestamp > t.timestamp;
+    }
+};
 #endif

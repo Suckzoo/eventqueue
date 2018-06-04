@@ -5,6 +5,9 @@
 #include "packet.hpp"
 #include <time.h>
 #include <stdlib.h>
+#include <set>
+
+using namespace std;
 
 void Player::initialize(int _id) {
     srand(time(NULL));
@@ -47,6 +50,9 @@ void Player::packetArrived(Event e) {
         case VOTE_PACKET:
             voteBuffer.push(*(dynamic_cast <VotePacket *> (e.p)));
             break;
+        case AGGREGATE_PACKET:
+            aggregateBuffer.push(*(dynamic_cast <AggregatePacket*> (e.p)));
+            break;
     }
 
     delete e.p;
@@ -63,6 +69,7 @@ int getRandomNumberExceptFor(int n, int a) {
         if(temp != a) return temp;
     }
 }
+
 void Player::action() {
     int i;
     int t;
@@ -138,9 +145,12 @@ void Player::action() {
         }
         printf("\n############### \n");
 
+        int packetId = rand();
+
         for(i=0;i<EventQueue::numPlayers;i++) {
             ActionPacket *packet = new ActionPacket();
 
+            packet->packetId = packetId;
             packet->action = a;
             packet->source = myState.id;
             packet->target = t;
@@ -164,20 +174,52 @@ void Player::action() {
     }
 }
 
-void Player::vote() {
-   // printf("player: %d       voteTurn: %lf,%lf\n", myState.id, EventQueue::getInstance()->getTime(),  voteFrequency);
+bool isValidPacket(ActionPacket ap) {
+    return true;
+}
 
-    while(!actionBuffer.empty()) {
-        ActionPacket myTop = actionBuffer.top();
+void Player::vote() {
+    vector <ActionPacket> receivedPackets;
+    vector <ActionPacket> validPackets;
+
+    while(!aggregateBuffer.empty()) {
+        AggregatePacket myTop = aggregateBuffer.top();
 
         int currentTurn = EventQueue::getInstance()->getTime() / voteFrequency;
-        int actionTurn = myTop.timestamp / voteFrequency;
+        int aggregateTurn = myTop.timestamp / voteFrequency;
 
-        if(actionTurn <= currentTurn-2) {
-            actionBuffer.pop();
+        if(aggregateTurn <= currentTurn-1) {
+            for(int j=0;j<myTop.packets.size();j++) {
+                receivedPackets.push_back(myTop.packets[j]);
+            }
 
-            // printf("%lf: %d %d -> %d\n",myTop.timestamp, myTop.action, myTop.source, myTop.target);
+            aggregateBuffer.pop();
+        }
+        else break;
+    }
 
+    set <int> packetIdSet;
+
+    for(int i=0;i<receivedPackets.size();i++) {
+        int cnt = 0;
+
+       // printf("%d: Received --> (%d %d %d %d)\n", myState.id, receivedPackets[i].packetId, receivedPackets[i].action, receivedPackets[i].source, receivedPackets[i].target);
+
+        if(packetIdSet.count(receivedPackets[i].packetId) >= 1) continue;
+
+        for(int j=0;j<receivedPackets.size();j++) {
+            if(receivedPackets[i].packetId == receivedPackets[j].packetId) {
+                cnt++;
+            }
+        }
+
+        if(cnt >= EventQueue::numPlayers / 2) {
+            packetIdSet.insert(receivedPackets[i].packetId);
+
+            ActionPacket& myTop = receivedPackets[i];
+
+            // printf("%d: Processing --> (%d %d %d %d)\n", myState.id, receivedPackets[i].packetId, receivedPackets[i].action, receivedPackets[i].source, receivedPackets[i].target);
+        
             if(globalState[myTop.source].hp > 0) {
                 if(myTop.action == GATHER) {
                     globalState[myTop.target].mp++;
@@ -194,14 +236,67 @@ void Player::vote() {
                 globalState[myTop.target].lastAction = myTop.action;
                 globalState[myTop.target].lastTimestamp = myTop.timestamp;
             }
-/*
-            for(int i=0;i<globalState.size();i++) {
-                printf("(%d, %d, %d)   ",i, globalState[i].hp, globalState[i].mp);
-            }
+        }
+    }
 
-            printf("\n");*/
+    AggregatePacket myPackets;
+
+    while(!actionBuffer.empty()) {
+        ActionPacket myTop = actionBuffer.top();
+
+        int currentTurn = EventQueue::getInstance()->getTime() / voteFrequency;
+        int actionTurn = myTop.timestamp / voteFrequency;
+
+        if(actionTurn <= currentTurn-2) {
+            actionBuffer.pop();
+
+            if(isValidPacket(myTop))
+                myPackets.packets.push_back(myTop);
+
+            /*
+            if(globalState[myTop.source].hp > 0) {
+                if(myTop.action == GATHER) {
+                    globalState[myTop.target].mp++;
+                }
+                else if(myTop.action == BOLT) {
+                    if(globalState[myTop.target].lastAction == SHIELD && globalState[myTop.target].lastTimestamp >= myTop.timestamp - 1000) ;
+                    else globalState[myTop.target].hp--;
+
+                    globalState[myTop.source].mp--;
+                }
+                else if(myTop.action == SHIELD) {
+                }
+
+                globalState[myTop.target].lastAction = myTop.action;
+                globalState[myTop.target].lastTimestamp = myTop.timestamp;
+            }
+            */
         }
         else break;
+    }
+
+    int packetId = rand();
+
+    // printf("%d: sending aggregated packets as follows\n", myState.id);
+
+    for(int i=0;i<myPackets.packets.size();i++) printf("(%d %d %d %d) ", myPackets.packets[i].packetId, myPackets.packets[i].action, myPackets.packets[i].source, myPackets.packets[i].target);
+
+    printf("\n");
+
+    for(int i=0;i<EventQueue::numPlayers;i++) {
+        AggregatePacket *packet = new AggregatePacket();
+
+        packet->packetId = packetId;
+        packet->source = myState.id;
+        packet->packets = myPackets.packets;
+        packet->timestamp = EventQueue::getInstance()->getTime();
+
+        if (i == myState.id){ 
+            aggregateBuffer.push(*packet);
+        }
+        else {
+            sendPacket(i, static_cast<Packet*>(packet));
+        }
     }
 
     printf("voting done! %d ------------------------------------------- \n",myState.id);
