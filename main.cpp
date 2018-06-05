@@ -3,12 +3,21 @@
 #include "player.hpp"
 
 int main() {
-    Player* instance1 = new Player();
-    EventQueue::getInstance()->registerInstance(static_cast<Instance*>(instance1));
+    int n;
+
+    scanf("%d",&n);
+
+    for(int i=0;i<n;i++) {
+        Player* instance = new Player();
+        EventQueue::getInstance()->registerInstance(static_cast<Instance*>(instance));
+    }
+
+    /*
     Player* instance2 = new Player();
     EventQueue::getInstance()->registerInstance(static_cast<Instance*>(instance2));
     Player* instance3 = new Player();
-    EventQueue::getInstance()->registerInstance(static_cast<Instance*>(instance3));
+    EventQueue::getInstance()->registerInstance(static_cast<Instance*>(instance3));*/
+
     /*
     Player* instance4 = new Player();
     EventQueue::getInstance()->registerInstance(static_cast<Instance*>(instance4));*/

@@ -54,9 +54,11 @@ public:
     void initialize(int);
     void initializeGlobalState();
     void packetArrived(Event);
-    void action();
+    void action(int actionType, int target);
     void vote();
     double getEventJittering();
+
+    bool doneFlag = false;
 };
 
 #endif

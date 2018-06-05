@@ -32,7 +32,104 @@ void EventQueue::run() {
     }
 
     Event event;
+    double curTime;
+    int actionVote;
+    int actionType;
+    int source;
+    int target;
+
+    scanf("%lf %d",&curTime, &actionVote);
+    
+    if(actionVote == 1) {
+        scanf("%d",&actionType);
+
+        if(actionType == 1)
+            scanf("%d %d",&source, &target);
+        else
+            scanf("%d",&source);
+    }
+    else {
+        scanf("%d",&source);
+    }
+
+    Event initial;
+    initial.timestamp = 987987987; 
+    initial.id = -1;
+    initial.eventType = PACKET;
+    initial.p = nullptr;
+    EventQueue::getInstance()->pushEvent(initial);
+
     while(!que.empty()) {
+        bool df = false;
+        for(int i=0;i<EventQueue::numPlayers;i++) {
+            Player *p = dynamic_cast <Player *>(instances[i]);
+
+            if(p->doneFlag == false) {
+                df = true;
+                break;
+            }
+        }
+
+        if(!df) break;
+
+        event = que.top();
+        int _target;
+        int _actionType;
+
+        // printf("%lf %lf\n",event.timestamp, curTime);
+        if(event.timestamp <= curTime) {
+            que.pop();
+        }
+        else {
+            if(actionVote == 1) {
+                event.timestamp = curTime;
+                event.id = source;
+                event.eventType = ACTION;
+                _target = target;
+                _actionType = actionType;
+            }
+            else {
+                event.timestamp = curTime;
+                event.id = source;
+                event.eventType = VOTE;
+            }
+
+            scanf("%lf %d",&curTime, &actionVote);
+
+            if(actionVote == 1) {
+                scanf("%d",&actionType);
+
+                if(actionType == 1)
+                    scanf("%d %d",&source, &target);
+                else {
+                    scanf("%d",&source);
+                    target = source;
+                }
+            }
+            else {
+                scanf("%d",&source);
+                target = source;
+            }
+        }
+
+        // printf("[EVENT] %lf %d %d\n", event.timestamp, event.id, event.eventType);
+
+        time = event.timestamp;
+        Instance *instance = instances[event.id];
+
+        switch(event.eventType) {
+            case PACKET:
+                instance->packetArrived(event);
+                break;
+            case VOTE:
+                instance->vote();
+                break;
+            case ACTION:
+                instance->action(_actionType, _target);
+                break;
+        }
+
+        /*
         event = que.top();
         que.pop();
         time = event.timestamp;
@@ -50,6 +147,7 @@ void EventQueue::run() {
                 break;
         }
         sleep(0.8);
+        */
     }
 }
 
