@@ -5,7 +5,6 @@
 #include "packet.hpp"
 #include <time.h>
 #include <stdlib.h>
-#include <algorithm>
 #include <set>
 
 using namespace std;
@@ -129,7 +128,7 @@ void Player::action() {
                 myState.lastAction = SHIELD;
 
                 if(EventQueue::truth[myState.id].hp > 0) {
-                    EventQueue::truth[myState.id].lastAction = SHIELD;
+                 EventQueue::truth[myState.id].lastAction = SHIELD;
                 }
 
                 break;
@@ -147,17 +146,25 @@ void Player::action() {
         printf("\n############### \n");
 
         int packetId = rand();
-        int myProxy = (myState.id + 1) % EventQueue::numPlayers;
 
-        ActionPacket *packet = new ActionPacket();
+        for(i=0;i<EventQueue::numPlayers;i++) {
+            ActionPacket *packet = new ActionPacket();
 
-        packet->packetId = packetId;
-        packet->action = a;
-        packet->source = myState.id;
-        packet->target = t;
-        packet->timestamp = EventQueue::getInstance()->getTime();
+            packet->packetId = packetId;
+            packet->action = a;
+            packet->source = myState.id;
+            packet->target = t;
+            packet->timestamp = EventQueue::getInstance()->getTime();
 
-        sendPacket(myProxy, static_cast<Packet*>(packet));
+            if (i == myState.id){ 
+                actionBuffer.push(*packet);
+            }
+            else {
+                sendPacket(i, static_cast<Packet*>(packet));
+                //printf("action: %d\n",a);
+            }
+
+        }
 
         Event e;
         e.timestamp = EventQueue::getInstance()->getTime() + reaction + getEventJittering();
@@ -191,30 +198,44 @@ void Player::vote() {
         else break;
     }
 
-    sort(receivedPackets.begin(), receivedPackets.end());
+    set <int> packetIdSet;
 
     for(int i=0;i<receivedPackets.size();i++) {
         int cnt = 0;
 
-        ActionPacket& myTop = receivedPackets[i];
+       // printf("%d: Received --> (%d %d %d %d)\n", myState.id, receivedPackets[i].packetId, receivedPackets[i].action, receivedPackets[i].source, receivedPackets[i].target);
 
-     // printf("%d: Processing --> (%d %d %d %d)\n", myState.id, receivedPackets[i].packetId, receivedPackets[i].action, receivedPackets[i].source, receivedPackets[i].target);
+        if(packetIdSet.count(receivedPackets[i].packetId) >= 1) continue;
 
-        if(globalState[myTop.source].hp > 0) {
-            if(myTop.action == GATHER) {
-                globalState[myTop.target].mp++;
+        for(int j=0;j<receivedPackets.size();j++) {
+            if(receivedPackets[i].packetId == receivedPackets[j].packetId) {
+                cnt++;
             }
-            else if(myTop.action == BOLT) {
-                if(globalState[myTop.target].lastAction == SHIELD && globalState[myTop.target].lastTimestamp >= myTop.timestamp - 1000) ;
-                else globalState[myTop.target].hp--;
+        }
 
-                globalState[myTop.source].mp--;
-            }
-            else if(myTop.action == SHIELD) {
-            }
+        if(cnt >= EventQueue::numPlayers / 2) {
+            packetIdSet.insert(receivedPackets[i].packetId);
 
-            globalState[myTop.target].lastAction = myTop.action;
-            globalState[myTop.target].lastTimestamp = myTop.timestamp;
+            ActionPacket& myTop = receivedPackets[i];
+
+            // printf("%d: Processing --> (%d %d %d %d)\n", myState.id, receivedPackets[i].packetId, receivedPackets[i].action, receivedPackets[i].source, receivedPackets[i].target);
+        
+            if(globalState[myTop.source].hp > 0) {
+                if(myTop.action == GATHER) {
+                    globalState[myTop.target].mp++;
+                }
+                else if(myTop.action == BOLT) {
+                    if(globalState[myTop.target].lastAction == SHIELD && globalState[myTop.target].lastTimestamp >= myTop.timestamp - 1000) ;
+                    else globalState[myTop.target].hp--;
+
+                    globalState[myTop.source].mp--;
+                }
+                else if(myTop.action == SHIELD) {
+                }
+
+                globalState[myTop.target].lastAction = myTop.action;
+                globalState[myTop.target].lastTimestamp = myTop.timestamp;
+            }
         }
     }
 
@@ -222,8 +243,6 @@ void Player::vote() {
 
     while(!actionBuffer.empty()) {
         ActionPacket myTop = actionBuffer.top();
-
-        // printf("---- action packet %d: (%d %d %d)\n", myState.id, myTop.action, myTop.source, myTop.target);
 
         int currentTurn = EventQueue::getInstance()->getTime() / voteFrequency;
         int actionTurn = myTop.timestamp / voteFrequency;
@@ -233,11 +252,32 @@ void Player::vote() {
 
             if(isValidPacket(myTop))
                 myPackets.packets.push_back(myTop);
+
+            /*
+            if(globalState[myTop.source].hp > 0) {
+                if(myTop.action == GATHER) {
+                    globalState[myTop.target].mp++;
+                }
+                else if(myTop.action == BOLT) {
+                    if(globalState[myTop.target].lastAction == SHIELD && globalState[myTop.target].lastTimestamp >= myTop.timestamp - 1000) ;
+                    else globalState[myTop.target].hp--;
+
+                    globalState[myTop.source].mp--;
+                }
+                else if(myTop.action == SHIELD) {
+                }
+
+                globalState[myTop.target].lastAction = myTop.action;
+                globalState[myTop.target].lastTimestamp = myTop.timestamp;
+            }
+            */
         }
         else break;
     }
 
     int packetId = rand();
+
+    // printf("%d: sending aggregated packets as follows\n", myState.id);
 
     for(int i=0;i<myPackets.packets.size();i++) printf("(%d %d %d %d) ", myPackets.packets[i].packetId, myPackets.packets[i].action, myPackets.packets[i].source, myPackets.packets[i].target);
 

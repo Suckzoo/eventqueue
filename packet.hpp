@@ -37,6 +37,10 @@ public:
     bool operator > (const ActionPacket& t) const {
         return timestamp > t.timestamp;
     }
+
+    bool operator < (const ActionPacket& t) const {
+        return timestamp < t.timestamp;
+    }
 };
 
 class VotePacket : public Packet {
