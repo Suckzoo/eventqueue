@@ -2,11 +2,20 @@
 #include "eventqueue.hpp"
 #include "player.hpp"
 #include <vector>
+#include <map>
 #include <unistd.h>
 
 int EventQueue::numPlayers = 0;
+int EventQueue::malCriteria = 0;
+bool EventQueue::malProxy = false;
+bool EventQueue::malUser = false;
+int EventQueue::rejectedCount[100];
+
 EventQueue* EventQueue::singleton = nullptr;
 vector <playerState> EventQueue::truth;
+
+map <int, int> EventQueue::actionOwner;
+
 
 double EventQueue::getTime() {
     return time;

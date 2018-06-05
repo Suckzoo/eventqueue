@@ -39,8 +39,6 @@ class playerState {
 class Player : public Instance {
 private:
     playerState myState;
-    double reaction = 1500;
-    double voteFrequency = 3000;
     double deviation = 50;
     random_device rd;
     mt19937_64 gen;
@@ -51,6 +49,13 @@ private:
     priority_queue <AggregatePacket, vector<AggregatePacket>, greater<AggregatePacket> > aggregateBuffer; 
 
 public:
+    double reaction = 1500;
+    double voteFrequency = 3000;
+    double maluser = false;
+    double malproxy = false;
+
+    int actionSendingCount = 0;
+
     void initialize(int);
     void initializeGlobalState();
     void packetArrived(Event);
@@ -58,6 +63,7 @@ public:
     void vote();
     double getEventJittering();
 
+    bool isValidPacket(ActionPacket ap);
     bool doneFlag = false;
 };
 

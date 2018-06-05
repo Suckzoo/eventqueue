@@ -24,11 +24,11 @@ double getEventJittering() {
 }
 
 int main() {
-    int n;
+    int n, m;
 
-    scanf("%d",&n);
+    scanf("%d %d",&n, &m);
 
-    printf("%d\n",n);
+    printf("%d %d\n",n, m);
 
     for(int i=0;i<n;i++) {
         hp[i] = 3;

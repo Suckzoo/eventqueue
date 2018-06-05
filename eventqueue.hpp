@@ -2,6 +2,7 @@
 #include <functional>
 #include <vector>
 #include <random>
+#include <map>
 #include "event.hpp"
 #include "instance.hpp"
 #include "player.hpp"
@@ -31,6 +32,14 @@ public:
     static vector <playerState> truth;
 
     static int numPlayers;
+    static int malCriteria;
+    static int rejectedCount[100];
+
+    static bool malProxy;
+    static bool malUser;
+
+    static map <int, int> actionOwner;
+
     static EventQueue *getInstance() {
         if (singleton == nullptr) {
             singleton = new EventQueue();

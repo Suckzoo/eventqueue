@@ -20,20 +20,23 @@ void Player::initialize(int _id) {
     nd = normal_distribution<double>(0, deviation);
 
     // Seed action
+    /*
     Event initial_action;
     initial_action.timestamp = reaction + getEventJittering();
     initial_action.id = myState.id;
     initial_action.eventType = ACTION;
     initial_action.p = nullptr;
-    EventQueue::getInstance()->pushEvent(initial_action);
+    EventQueue::getInstance()->pushEvent(initial_action);*/
 
     // Seed vote
+    /*
     Event initial_vote;
-    initial_vote.timestamp = voteFrequency; /*+ getEventJittering();*/
+    initial_vote.timestamp = voteFrequency;
     initial_vote.id = myState.id;
     initial_vote.eventType = VOTE;
     initial_vote.p = nullptr;
     EventQueue::getInstance()->pushEvent(initial_vote);
+    */
 }
 
 void Player::initializeGlobalState() {
@@ -70,7 +73,7 @@ int getRandomNumberExceptFor(int n, int a) {
     }
 }
 
-void Player::action() {
+void Player::action(int actionType, int target) {
     int i;
     int t;
     ActionType a;
@@ -82,9 +85,63 @@ void Player::action() {
             aliveCnt++;
     }
 
-    if(aliveCnt <= 1) return;
+    if(aliveCnt <= 1){
+        doneFlag = true;
+        return;
+    }
 
     if(globalState[myState.id].hp > 0) {
+        actionSendingCount++;
+
+        while(1) {
+            if(actionType == 1) {
+                a = BOLT;
+                t = target;
+
+                if(myState.mp > 0) {
+                    myState.lastAction = BOLT;
+                    myState.mp--;
+
+                    if(EventQueue::truth[myState.id].hp > 0)
+                        EventQueue::truth[myState.id].mp--;
+
+                    if(EventQueue::truth[myState.id].hp <= 0 || (EventQueue::truth[t].lastAction == SHIELD && EventQueue::truth[t].lastTimestamp >= EventQueue::getInstance()->getTime() - 1000)) ;
+                    else{
+                        EventQueue::truth[t].hp--;
+                    }
+
+                    EventQueue::truth[myState.id].lastAction = BOLT;
+                }
+                break;
+            }
+            else if(actionType == 2) {
+                a = GATHER;
+                t = myState.id;
+
+                myState.mp++;
+                myState.lastAction = GATHER;
+
+                if(EventQueue::truth[myState.id].hp > 0) {
+                    EventQueue::truth[myState.id].mp++;
+                    EventQueue::truth[myState.id].lastAction = GATHER;
+                }
+
+                break;
+            }
+            else {
+                a = SHIELD;
+                t = myState.id;
+
+                myState.lastAction = SHIELD;
+
+                if(EventQueue::truth[myState.id].hp > 0) {
+                    EventQueue::truth[myState.id].lastAction = SHIELD;
+                }
+
+                break;
+            }
+        }
+        /*
         while(1) {
             int operation = getRandomNumber(3);
 
@@ -133,7 +190,7 @@ void Player::action() {
 
                 break;
             }
-        }
+        }*/
 
         myState.lastTimestamp = EventQueue::getInstance()->getTime();
         EventQueue::truth[myState.id].lastTimestamp = myState.lastTimestamp;
@@ -146,6 +203,8 @@ void Player::action() {
         printf("\n############### \n");
 
         int packetId = rand();
+
+        EventQueue::actionOwner[packetId] = myState.id;
 
         for(i=0;i<EventQueue::numPlayers;i++) {
             ActionPacket *packet = new ActionPacket();
@@ -160,22 +219,35 @@ void Player::action() {
                 actionBuffer.push(*packet);
             }
             else {
+                packetSendingCount++;
+
+                if(EventQueue::malProxy == true && i < EventQueue::malCriteria) packetRejectedCount++;
+                else packetSuccessfulCount++;
+
                 sendPacket(i, static_cast<Packet*>(packet));
                 //printf("action: %d\n",a);
             }
 
         }
 
+        /*
         Event e;
         e.timestamp = EventQueue::getInstance()->getTime() + reaction + getEventJittering();
         e.id = myState.id;
         e.eventType = ACTION;
-        EventQueue::getInstance()->pushEvent(e);
+        EventQueue::getInstance()->pushEvent(e);*/
     }
 }
 
-bool isValidPacket(ActionPacket ap) {
-    return true;
+bool Player::isValidPacket(ActionPacket ap) {
+    if(EventQueue::malProxy == true && myState.id < EventQueue::malCriteria)
+        return false;
+    else{
+        if(EventQueue::malUser == true && ap.source < EventQueue::malCriteria)
+            return false;
+        else
+            return true;
+    }
 }
 
 void Player::vote() {
@@ -236,6 +308,8 @@ void Player::vote() {
                 globalState[myTop.target].lastAction = myTop.action;
                 globalState[myTop.target].lastTimestamp = myTop.timestamp;
             }
+        } else {
+            EventQueue::rejectedCount[EventQueue::actionOwner[receivedPackets[i].packetId]]++;
         }
     }
 
@@ -250,8 +324,12 @@ void Player::vote() {
         if(actionTurn <= currentTurn-2) {
             actionBuffer.pop();
 
+            packetReceivingCount++;
+
             if(isValidPacket(myTop))
                 myPackets.packets.push_back(myTop);
+            else
+                invalidPacketReceivingCount++;
 
             /*
             if(globalState[myTop.source].hp > 0) {
@@ -295,6 +373,11 @@ void Player::vote() {
             aggregateBuffer.push(*packet);
         }
         else {
+            packetSendingCount++;
+
+            if(EventQueue::malProxy == true && i < EventQueue::malCriteria) packetRejectedCount++;
+            else packetSuccessfulCount++;
+
             sendPacket(i, static_cast<Packet*>(packet));
         }
     }
@@ -304,6 +387,7 @@ void Player::vote() {
     for(int i=0;i<EventQueue::numPlayers;i++) {
         printf("(%d, %d, %d)     ",i, globalState[i].hp, globalState[i].mp);
     }
+    printf("\n%d %d %d %d %d\n", packetSendingCount, packetSuccessfulCount, packetRejectedCount, packetReceivingCount, invalidPacketReceivingCount);
 
     printf("\n");
 
@@ -316,13 +400,14 @@ void Player::vote() {
 
     if(aliveCnt <= 1) {
         printf("Game done!! %d\n", myState.id);
+        doneFlag = true;
     } 
-    else {
+    else {/*
         Event e;
         e.timestamp = EventQueue::getInstance()->getTime() + voteFrequency;
         e.id = myState.id;
         e.eventType = VOTE;
-        EventQueue::getInstance()->pushEvent(e);
+        EventQueue::getInstance()->pushEvent(e);*/
     }
 }
 

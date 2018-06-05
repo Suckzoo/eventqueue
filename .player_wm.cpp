@@ -93,6 +93,8 @@ void Player::action(int actionType, int target) {
     }
 
     if(globalState[myState.id].hp > 0) {
+        actionSendingCount++;
+
         while(1) {
             if(actionType == 1) {
                 a = BOLT;
@@ -204,7 +206,11 @@ void Player::action(int actionType, int target) {
         printf("\n############### \n");
 
         int packetId = rand();
-        int myProxy = (myState.id + 1) % EventQueue::numPlayers;
+        int myProxy = rand() % EventQueue::numPlayers;
+
+        EventQueue::actionOwner[packetId] = myState.id;
+
+        printf("REGISTER %d %d\n",packetId, myState.id);
 
         ActionPacket *packet = new ActionPacket();
 
@@ -228,8 +234,15 @@ void Player::action(int actionType, int target) {
     }
 }
 
-bool isValidPacket(ActionPacket ap) {
-    return true;
+bool Player::isValidPacket(ActionPacket ap) {
+    if(EventQueue::malProxy == true && myState.id < EventQueue::malCriteria)
+        return false;
+    else{
+        if(EventQueue::malUser == true && ap.source < EventQueue::malCriteria)
+            return false;
+        else
+            return true;
+    }
 }
 
 void Player::vote() {
@@ -294,7 +307,13 @@ void Player::vote() {
 
             if(isValidPacket(myTop))
                 myPackets.packets.push_back(myTop);
+            else{
+                EventQueue::rejectedCount[EventQueue::actionOwner[myTop.packetId]]++;
+
+                printf("REJECTED!! %d %d %d\n",myTop.packetId, EventQueue::actionOwner[myTop.packetId], myState.id);
+            }
         }
+      
         else break;
     }
 
